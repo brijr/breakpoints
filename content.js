@@ -1,31 +1,23 @@
-// Constants
-const BREAKPOINTS = [
-  { prefix: 'xs', width: 393, device: 'iPhone 14 Pro' },
-  { prefix: 'sm', width: 640, device: 'Small Tablet' },
-  { prefix: 'md', width: 768, device: 'iPad Mini' },
-  { prefix: 'lg', width: 1024, device: 'iPad Pro' },
-  { prefix: 'xl', width: 1280, device: 'Laptop' },
-  { prefix: '2xl', width: 1536, device: 'Desktop' },
-  { prefix: 'full', width: window.innerWidth, device: 'Full Width' }
-];
-
 // State management
 let state = {
   isResizing: false,
   activeMenu: null,
-  activeControls: null
+  activeControls: null,
 };
 
-// Utility functions
+// Constants will be loaded from constants.js
+let BREAKPOINTS = [];
+
+// Utility functions - fallbacks in case dynamic loading fails
 const createElement = (tag, className, attributes = {}) => {
   const element = document.createElement(tag);
   if (className) element.className = className;
-  Object.entries(attributes).forEach(([key, value]) => element[key] = value);
+  Object.entries(attributes).forEach(([key, value]) => (element[key] = value));
   return element;
 };
 
 const cleanupElements = (...selectors) => {
-  selectors.forEach(selector => {
+  selectors.forEach((selector) => {
     const element = document.querySelector(selector);
     if (element) element.remove();
   });
@@ -39,7 +31,14 @@ const debounce = (fn, delay) => {
   };
 };
 
-const handleResize = (wrapper, sizeInfo, { prefix, device }, startPos, startWidth, isTouch = false) => {
+const handleResize = (
+  wrapper,
+  sizeInfo,
+  { prefix, device },
+  startPos,
+  startWidth,
+  isTouch = false
+) => {
   const getNewWidth = (currentPos) => {
     const delta = currentPos - startPos;
     return Math.max(320, Math.min(startWidth + delta, window.innerWidth - 48));
@@ -51,323 +50,261 @@ const handleResize = (wrapper, sizeInfo, { prefix, device }, startPos, startWidt
     const newWidth = getNewWidth(currentPos);
     wrapper.style.width = `${newWidth}px`;
     sizeInfo.textContent = `${prefix}: ${newWidth}px • ${device}`;
-    wrapper.style.transform = newWidth <= 768 ? `scale(${Math.min(1, (window.innerWidth - 48) / newWidth)})` : 'none';
+    wrapper.style.transform =
+      newWidth <= 768
+        ? `scale(${Math.min(1, (window.innerWidth - 48) / newWidth)})`
+        : "none";
     if (isTouch) e.preventDefault();
   };
 };
 
-// Create iframe content
+// Component functions - fallbacks in case dynamic loading fails
 const createIframeContent = () => {
-  const container = createElement('div', 'tw-content', {
-    style: 'width: 100%; height: 100%; overflow: hidden;'
+  const container = createElement("div", "tw-content", {
+    style: "width: 100%; height: 100%; overflow: hidden;",
   });
 
-  const iframe = createElement('iframe', '', {
-    style: 'width: 100%; height: 100%; border: none; margin: 0; padding: 0;',
-    sandbox: 'allow-same-origin allow-scripts allow-forms allow-popups',
+  const iframe = createElement("iframe", "", {
+    style: "width: 100%; height: 100%; border: none; margin: 0; padding: 0;",
+    sandbox: "allow-same-origin allow-scripts allow-forms allow-popups",
     src: window.location.href,
-    loading: 'eager',
-    importance: 'high'
+    loading: "eager",
+    importance: "high",
   });
 
   container.appendChild(iframe);
   return { container, iframe };
 };
 
-// Create controls
 const createControls = (container, indicator) => {
-  const controls = createElement('div', 'tw-controls');
+  const controls = createElement("div", "tw-controls");
 
   // Toggle background button
-  const toggleBgButton = createElement('button', 'tw-control-button', {
-    textContent: '🎨',
-    title: 'Toggle background',
+  const toggleBgButton = createElement("button", "tw-control-button", {
+    textContent: "🎨",
+    title: "Toggle background",
     onclick: (e) => {
       e.stopPropagation();
       const root = document.documentElement;
-      const currentBg = getComputedStyle(root).getPropertyValue('--tw-bg-color').trim();
-      root.style.setProperty('--tw-bg-color', currentBg === '#000' ? '#111' : '#000');
-    }
+      const currentBg = getComputedStyle(root)
+        .getPropertyValue("--tw-bg-color")
+        .trim();
+      root.style.setProperty(
+        "--tw-bg-color",
+        currentBg === "#000" ? "#111" : "#000"
+      );
+    },
   });
   controls.appendChild(toggleBgButton);
 
   // Reset button
-  const resetButton = createElement('button', 'tw-control-button', {
-    textContent: '✕',
-    title: 'Reset view',
+  const resetButton = createElement("button", "tw-control-button", {
+    textContent: "✕",
+    title: "Reset view",
     onclick: () => {
-      container.style.animation = 'tw-fade-out 0.3s ease-out forwards';
-      indicator.style.animation = 'tw-fade-out 0.3s ease-out forwards';
+      container.style.animation = "tw-fade-out 0.3s ease-out forwards";
+      indicator.style.animation = "tw-fade-out 0.3s ease-out forwards";
       setTimeout(() => {
-        cleanupElements('meta[name="viewport"][data-tw-original]');
         container.remove();
         indicator.remove();
-        state.activeControls = null;
+        document.body.style.overflow = "";
       }, 300);
-    }
+    },
   });
   controls.appendChild(resetButton);
 
   return controls;
 };
 
-// Create menu
-function createMenu() {
-  const menu = createElement('div', 'tw-menu');
-
-  BREAKPOINTS.forEach(breakpoint => {
-    const item = createElement('button', 'tw-menu-item', {
-      onclick: () => applyBreakpoint(breakpoint)
-    });
-
-    ['prefix', 'size', 'device'].forEach(type => {
-      const span = createElement('span', type);
-      span.textContent = type === 'size' ? `${breakpoint.width}px` : breakpoint[type];
-      item.appendChild(span);
-    });
-
-    menu.appendChild(item);
-  });
+const createMenu = () => {
+  const menu = createElement("div", "tw-breakpoint-menu");
+  menu.style.display = "none";
 
   return menu;
-}
-
-const closeMenu = (e) => {
-  if (!e.target.closest('.tw-menu') && !e.target.closest('.tw-menu-button')) {
-    state.activeMenu?.remove();
-    state.activeMenu = null;
-    document.removeEventListener('click', closeMenu);
-  }
 };
 
-// Toggle menu visibility
-function toggleMenu() {
-  if (state.activeMenu) {
-    state.activeMenu.remove();
-    state.activeMenu = null;
-    return;
+// Load dependencies
+(async function loadDependencies() {
+  try {
+    // Load constants
+    const constantsResponse = await fetch(
+      chrome.runtime.getURL("constants.js")
+    );
+    const constantsText = await constantsResponse.text();
+    const constantsModule = new Function(
+      "exports",
+      constantsText + "; return exports;"
+    )({});
+    BREAKPOINTS = constantsModule.BREAKPOINTS || [
+      { prefix: "xs", width: 393, device: "iPhone 14 Pro" },
+      { prefix: "sm", width: 640, device: "Small Tablet" },
+      { prefix: "md", width: 768, device: "iPad Mini" },
+      { prefix: "lg", width: 1024, device: "iPad Pro" },
+      { prefix: "xl", width: 1280, device: "Laptop" },
+      { prefix: "2xl", width: 1536, device: "Desktop" },
+      { prefix: "full", width: window.innerWidth, device: "Full Width" },
+    ];
+  } catch (error) {
+    console.error("Failed to load constants:", error);
+    // Fallback constants
+    BREAKPOINTS = [
+      { prefix: "xs", width: 393, device: "iPhone 14 Pro" },
+      { prefix: "sm", width: 640, device: "Small Tablet" },
+      { prefix: "md", width: 768, device: "iPad Mini" },
+      { prefix: "lg", width: 1024, device: "iPad Pro" },
+      { prefix: "xl", width: 1280, device: "Laptop" },
+      { prefix: "2xl", width: 1536, device: "Desktop" },
+      { prefix: "full", width: window.innerWidth, device: "Full Width" },
+    ];
   }
-
-  // Close menu when clicking outside
-  setTimeout(() => {
-    document.addEventListener('click', function closeMenu(e) {
-      if (!e.target.closest('.tw-menu') && !e.target.closest('.tw-menu-button') && state.activeMenu) {
-        state.activeMenu.remove();
-        state.activeMenu = null;
-        document.removeEventListener('click', closeMenu);
-      } 
-    });
-  }, 0);
-
-  state.activeMenu = createMenu();
-  document.body.appendChild(state.activeMenu);
-}
+})();
 
 // Setup viewport
 const setupViewport = () => {
-  const existingViewport = document.querySelector('meta[name="viewport"]');
-  if (existingViewport) {
-    existingViewport.setAttribute('data-tw-original', existingViewport.content);
-  }
+  const container = createElement("div", "tw-breakpoint-container");
+  const wrapper = createElement("div", "tw-breakpoint-wrapper");
+  const indicator = createElement("div", "tw-breakpoint-indicator");
+  const sizeInfo = createElement("span");
 
-  const viewport = createElement('meta', '', {
-    name: 'viewport',
-    content: 'width=device-width, initial-scale=1'
-  });
-  document.head.appendChild(viewport);
+  indicator.appendChild(sizeInfo);
+  document.body.appendChild(container);
+  document.body.appendChild(indicator);
+
+  return { container, wrapper, indicator, sizeInfo };
 };
 
 // Setup resize handlers
 const setupResizeHandlers = (wrapper, handle, sizeInfo, breakpoint) => {
   const startResize = (startPos, startWidth, isTouch) => {
-    state.isResizing = true;
-    wrapper.dataset.resizing = 'true';
-    if (!isTouch) document.body.style.cursor = 'ew-resize';
-
-    const moveHandler = handleResize(wrapper, sizeInfo, breakpoint, startPos, startWidth, isTouch);
+    wrapper.dataset.resizing = "true";
+    const moveHandler = handleResize(
+      wrapper,
+      sizeInfo,
+      breakpoint,
+      startPos,
+      startWidth,
+      isTouch
+    );
     const endResize = () => {
-      state.isResizing = false;
       delete wrapper.dataset.resizing;
-      if (!isTouch) document.body.style.cursor = '';
-      document[isTouch ? 'removeEventListener' : 'removeEventListener'](
-        isTouch ? 'touchmove' : 'mousemove',
-        moveHandler
-      );
+      if (isTouch) {
+        document.removeEventListener("touchmove", moveHandler);
+        document.removeEventListener("touchend", endResize);
+      } else {
+        document.removeEventListener("mousemove", moveHandler);
+        document.removeEventListener("mouseup", endResize);
+      }
     };
-    const debouncedMoveHandler = debounce(moveHandler, 16);
 
-    document[isTouch ? 'addEventListener' : 'addEventListener'](
-      isTouch ? 'touchmove' : 'mousemove',
-      moveHandler
-    );
-    document[isTouch ? 'addEventListener' : 'addEventListener'](
-      isTouch ? 'touchend' : 'mouseup',
-      endResize,
-      { once: true }
-    );
+    if (isTouch) {
+      document.addEventListener("touchmove", moveHandler, { passive: false });
+      document.addEventListener("touchend", endResize);
+    } else {
+      document.addEventListener("mousemove", moveHandler);
+      document.addEventListener("mouseup", endResize);
+    }
   };
 
-  handle.addEventListener('mousedown', (e) => {
-    startResize(e.clientX, wrapper.offsetWidth, false);
+  handle.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    const startWidth = wrapper.offsetWidth;
+    startResize(e.clientX, startWidth);
   });
 
-  handle.addEventListener('touchstart', (e) => {
-    startResize(e.touches[0]?.clientX || 0, wrapper.offsetWidth, true);
-    e.preventDefault();
+  handle.addEventListener("touchstart", (e) => {
+    const startWidth = wrapper.offsetWidth;
+    startResize(e.touches[0].clientX, startWidth, true);
   });
 };
 
 // Apply breakpoint
 function applyBreakpoint({ width, prefix, device }) {
-  cleanupElements(
-    '.tw-breakpoint-wrapper:not([data-tw-preserved])',
-    '.tw-breakpoint-container:not([data-tw-preserved])',
-    '.tw-breakpoint-indicator:not([data-tw-preserved])',
-    '.tw-loading-overlay:not([data-tw-preserved])',
-    '.tw-menu:not([data-tw-preserved])'
-  );
+  cleanupElements(".tw-breakpoint-container", ".tw-breakpoint-indicator");
 
-  const overlay = createElement('div', 'tw-loading-overlay');
-  document.body.appendChild(overlay);
+  const { container, wrapper, indicator, sizeInfo } = setupViewport();
 
-  const container = createElement('div', 'tw-breakpoint-container');
-  const wrapper = createElement('div', 'tw-breakpoint-wrapper');
+  // Set initial size
+  wrapper.style.width = `${width}px`;
+  sizeInfo.textContent = `${prefix}: ${width}px • ${device}`;
 
-  wrapper.setAttribute('data-tw-preserved', 'true');
-
-  // Set initial width and transform
-  if (prefix === 'full') {
-    wrapper.style.width = '100%';
-    wrapper.style.maxWidth = 'none';
-  } else {
-    if (width <= 768) {
-      wrapper.style.width = '100%';
-      wrapper.style.minWidth = `${width}px`;
-      wrapper.style.transform = `scale(${Math.min(1, (window.innerWidth - 48) / width)}) translateZ(0)`;
-      wrapper.style.transformOrigin = 'top left';
-    } else {
-      wrapper.style.width = `${width}px`;
-      wrapper.style.transform = 'none';
-    }
-    wrapper.style.maxWidth = '100%';
-  }
-
-  wrapper.style.willChange = 'transform, width';
-  const resizeHandle = createElement('div', 'tw-resize-handle');
-  wrapper.appendChild(resizeHandle);
-
-  setupViewport();
-
+  // Create content
   const { container: contentContainer, iframe } = createIframeContent();
   wrapper.appendChild(contentContainer);
 
-  // Performance optimization
-  wrapper.style.backfaceVisibility = 'hidden';
-  wrapper.style.perspective = '1000px';
-  wrapper.style.transform = wrapper.style.transform + ' translateZ(0)';
+  // Create resize handle
+  const handle = createElement("div", "tw-resize-handle");
+  wrapper.appendChild(handle);
 
-  // Handle iframe load
-  iframe.onload = () => {
-    try {
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      let viewportMeta = iframeDoc.querySelector('meta[name="viewport"]');
-      if (!viewportMeta) {
-        viewportMeta = iframeDoc.createElement('meta');
-        viewportMeta.name = 'viewport';
-        iframeDoc.head.appendChild(viewportMeta);
-      }
-      viewportMeta.content = 'width=device-width, initial-scale=1, shrink-to-fit=no';
-      iframeDoc.documentElement.style.background = '#fff';
-    } catch (e) {
-      contentContainer.innerHTML = `
-        <div style="
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 100%;
-          padding: 2rem;
-          text-align: center;
-          color: #666;
-          font-family: system-ui, -apple-system, sans-serif;
-        ">
-          <div>
-            <h2 style="margin: 0 0 1rem; font-size: 1.5rem; font-weight: 500;">Content Security Policy Restriction</h2>
-            <p style="margin: 0; line-height: 1.5;">
-              This website's security policy prevents the breakpoint viewer from displaying the content directly.
-              <br>
-              Please try opening the website in a new tab at your desired breakpoint width.
-            </p>
-          </div>
-        </div>
-      `;
-    }
-  };
+  // Setup resize handlers
+  setupResizeHandlers(wrapper, handle, sizeInfo, { prefix, device });
 
-  container.appendChild(wrapper);
-  container.style.opacity = '0';
-  document.body.appendChild(container);
-
-  requestAnimationFrame(() => {
-    container.style.transition = 'opacity 0.2s ease-out';
-    container.style.opacity = '1';
-  });
-
-  const indicator = createElement('div', 'tw-breakpoint-indicator');
-  indicator.setAttribute('data-tw-preserved', 'true');
-  const sizeInfo = createElement('span', '', {
-    textContent: `${prefix}: ${width}px • ${device}`
-  });
-  indicator.appendChild(sizeInfo);
-
+  // Add controls
   const controls = createControls(container, indicator);
   indicator.appendChild(controls);
-  state.activeControls = controls;
-  document.body.appendChild(indicator);
 
-  setupResizeHandlers(wrapper, resizeHandle, sizeInfo, { prefix, device });
+  // Add to DOM
+  container.appendChild(wrapper);
 
-  setTimeout(() => overlay.remove(), 300);
+  // Apply scaling for small screens
+  if (width > window.innerWidth - 48) {
+    wrapper.style.transform = `scale(${(window.innerWidth - 48) / width})`;
+  }
+
+  // Handle window resize
+  const handleWindowResize = debounce(() => {
+    if (width > window.innerWidth - 48) {
+      wrapper.style.transform = `scale(${(window.innerWidth - 48) / width})`;
+    } else {
+      wrapper.style.transform = "none";
+    }
+  }, 100);
+
+  window.addEventListener("resize", handleWindowResize);
+
+  return true;
 }
 
-// Listen for messages from the extension
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action !== 'toggleBreakpointViewer') return false;
-  
-  // Prevent multiple instances
-  const existingElements = document.querySelectorAll(
-    '.tw-breakpoint-container, .tw-breakpoint-indicator, .tw-menu, .tw-menu-button'
-  );
+// Toggle breakpoint viewer
+function toggleBreakpointViewer() {
+  const container = document.querySelector(".tw-breakpoint-container");
 
-  // Reset state
-  state = {
-    isResizing: false,
-    activeMenu: null,
-    activeControls: null
-  };
-  
-  if (existingElements.length > 0) {
-    existingElements.forEach(el => el.remove());
-    sendResponse({ success: true });
+  if (container) {
+    cleanupElements(".tw-breakpoint-container", ".tw-breakpoint-indicator");
+    return false;
+  }
+
+  const menu = createMenu();
+  document.body.appendChild(menu);
+
+  BREAKPOINTS.forEach((breakpoint) => {
+    const button = createElement("button", "tw-breakpoint-button", {
+      textContent: `${breakpoint.prefix}: ${breakpoint.width}px`,
+      onclick: () => {
+        menu.remove();
+        applyBreakpoint(breakpoint);
+      },
+    });
+    menu.appendChild(button);
+  });
+
+  menu.style.display = "flex";
+
+  // Close menu when clicking outside
+  document.addEventListener("click", function closeMenu(e) {
+    if (!menu.contains(e.target)) {
+      menu.remove();
+      document.removeEventListener("click", closeMenu);
+    }
+  });
+
+  return true;
+}
+
+// Message handler
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "toggleBreakpointViewer") {
+    const result = toggleBreakpointViewer();
+    sendResponse({ success: result });
     return true;
   }
-
-  try {
-    // Check if we're in an iframe
-    if (window !== window.top) {
-      console.warn('Breakpoint viewer cannot be initialized in an iframe');
-      sendResponse({ success: false, error: 'Cannot initialize in iframe' });
-      return true;
-    }
-
-    const newButton = createElement('button', 'tw-menu-button', {
-      innerHTML: '📱 Breakpoints',
-      onclick: toggleMenu
-    });
-    document.body.appendChild(newButton);
-    sendResponse({ success: true });
-  } catch (error) {
-    console.error('Breakpoint viewer error:', error);
-    sendResponse({ success: false, error: error.message });
-  }
-  return true;
 });
