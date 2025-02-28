@@ -5,10 +5,18 @@ let state = {
   activeControls: null,
 };
 
-// Constants will be loaded from constants.js
-let BREAKPOINTS = [];
+// Constants - Tailwind breakpoints
+const BREAKPOINTS = [
+  { prefix: "xs", width: 393, device: "iPhone 14 Pro" },
+  { prefix: "sm", width: 640, device: "Small Tablet" },
+  { prefix: "md", width: 768, device: "iPad Mini" },
+  { prefix: "lg", width: 1024, device: "iPad Pro" },
+  { prefix: "xl", width: 1280, device: "Laptop" },
+  { prefix: "2xl", width: 1536, device: "Desktop" },
+  { prefix: "full", width: window.innerWidth, device: "Full Width" },
+];
 
-// Utility functions - fallbacks in case dynamic loading fails
+// Utility functions
 const createElement = (tag, className, attributes = {}) => {
   const element = document.createElement(tag);
   if (className) element.className = className;
@@ -58,7 +66,7 @@ const handleResize = (
   };
 };
 
-// Component functions - fallbacks in case dynamic loading fails
+// Component functions
 const createIframeContent = () => {
   const container = createElement("div", "tw-content", {
     style: "width: 100%; height: 100%; overflow: hidden;",
@@ -122,42 +130,6 @@ const createMenu = () => {
 
   return menu;
 };
-
-// Load dependencies
-(async function loadDependencies() {
-  try {
-    // Load constants
-    const constantsResponse = await fetch(
-      chrome.runtime.getURL("constants.js")
-    );
-    const constantsText = await constantsResponse.text();
-    const constantsModule = new Function(
-      "exports",
-      constantsText + "; return exports;"
-    )({});
-    BREAKPOINTS = constantsModule.BREAKPOINTS || [
-      { prefix: "xs", width: 393, device: "iPhone 14 Pro" },
-      { prefix: "sm", width: 640, device: "Small Tablet" },
-      { prefix: "md", width: 768, device: "iPad Mini" },
-      { prefix: "lg", width: 1024, device: "iPad Pro" },
-      { prefix: "xl", width: 1280, device: "Laptop" },
-      { prefix: "2xl", width: 1536, device: "Desktop" },
-      { prefix: "full", width: window.innerWidth, device: "Full Width" },
-    ];
-  } catch (error) {
-    console.error("Failed to load constants:", error);
-    // Fallback constants
-    BREAKPOINTS = [
-      { prefix: "xs", width: 393, device: "iPhone 14 Pro" },
-      { prefix: "sm", width: 640, device: "Small Tablet" },
-      { prefix: "md", width: 768, device: "iPad Mini" },
-      { prefix: "lg", width: 1024, device: "iPad Pro" },
-      { prefix: "xl", width: 1280, device: "Laptop" },
-      { prefix: "2xl", width: 1536, device: "Desktop" },
-      { prefix: "full", width: window.innerWidth, device: "Full Width" },
-    ];
-  }
-})();
 
 // Setup viewport
 const setupViewport = () => {

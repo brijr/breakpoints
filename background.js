@@ -12,7 +12,7 @@ self.addEventListener("activate", (event) => {
  * @param {chrome.tabs.Tab} tab - The active tab
  * @returns {Promise<void>}
  */
-const toggleBreakpointViewer = async (tab) => {
+async function toggleBreakpointViewer(tab) {
   try {
     // Ensure we can access the tab
     if (!tab?.url?.startsWith("http")) {
@@ -57,7 +57,7 @@ const toggleBreakpointViewer = async (tab) => {
   } catch (error) {
     console.error("Failed to execute script:", error);
   }
-};
+}
 
 // Listen for extension icon clicks
 chrome.action.onClicked.addListener(toggleBreakpointViewer);

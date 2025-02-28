@@ -16,8 +16,7 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
@@ -32,16 +31,6 @@
         "content.js"
       ],
       "run_at": "document_end"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "constants.js"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
     }
   ],
   "icons": {
