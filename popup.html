@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tailwind Breakpoint Viewer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Tailwind Breakpoint Viewer</h1>
+    <div class="breakpoints">
+      <button data-width="393" data-device="Mobile (Narrow)" class="breakpoint-btn">
+        <span class="prefix">xs</span>
+        <div class="size-info">
+          <span class="size">393px</span>
+          <span class="device">Mobile (Narrow)</span>
+        </div>
+      </button>
+      <button data-width="640" data-device="Mobile (Portrait)" class="breakpoint-btn">
+        <span class="prefix">sm</span>
+        <div class="size-info">
+          <span class="size">640px</span>
+          <span class="device">Mobile (Portrait)</span>
+        </div>
+      </button>
+      <button data-width="768" data-device="Mobile (Landscape)" class="breakpoint-btn">
+        <span class="prefix">md</span>
+        <div class="size-info">
+          <span class="size">768px</span>
+          <span class="device">Mobile (Landscape)</span>
+        </div>
+      </button>
+      <button data-width="1024" data-device="Tablet" class="breakpoint-btn">
+        <span class="prefix">lg</span>
+        <div class="size-info">
+          <span class="size">1024px</span>
+          <span class="device">Tablet</span>
+        </div>
+      </button>
+      <button data-width="1280" data-device="Laptop" class="breakpoint-btn">
+        <span class="prefix">xl</span>
+        <div class="size-info">
+          <span class="size">1280px</span>
+          <span class="device">Laptop</span>
+        </div>
+      </button>
+      <button data-width="1536" data-device="Desktop" class="breakpoint-btn">
+        <span class="prefix">2xl</span>
+        <div class="size-info">
+          <span class="size">1536px</span>
+          <span class="device">Desktop</span>
+        </div>
+      </button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

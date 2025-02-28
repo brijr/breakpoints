@@ -1,0 +1,86 @@
+.tw-breakpoint-container {
+  position: relative !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+  animation: tw-fade-in 0.3s ease-out !important;
+  background: #000 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.tw-breakpoint-wrapper {
+  position: relative !important;
+  margin: 0 auto !important;
+  height: calc(100dvh - 48px) !important;
+  background: #ffffff !important;
+  transition: width 0.3s ease-in-out !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px) !important;
+  animation: tw-scale-in 0.3s ease-out !important;
+  transform: translateZ(0) !important;
+  will-change: transform, width !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  transform-origin: top left !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+@supports not (height: 100dvh) {
+  .tw-breakpoint-container {
+    height: 100vh !important;
+  }
+  .tw-breakpoint-wrapper {
+    height: calc(100vh - 48px) !important;
+  }
+}
+
+.tw-content {
+  flex: 1 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.tw-content iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  background: #fff !important;
+}
+
+.tw-menu-button {
+  position: fixed !important;
+  top: 16px !important;
+  left: 16px !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+}
+
+.tw-menu-button:hover {
+  background: rgba(0, 0, 0, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 8px -2px rgba(0, 0, 0, 0.15),
+              0 4px 6px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tw-menu-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
